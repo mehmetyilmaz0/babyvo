@@ -1,0 +1,43 @@
+services:
+  babyvo-postgres:
+    image: postgres:16-alpine
+    container_name: babyvo-postgres
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    environment:
+      POSTGRES_DB: ${DB_NAME:-babyvo}
+      POSTGRES_USER: ${DB_USER:-babyvo}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    volumes:
+      - babyvo_pg_data:/var/lib/postgresql/data
+
+  babyvo-redis:
+    image: redis:7-alpine
+    container_name: babyvo-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - babyvo_redis_data:/data
+
+  babyvo-api:
+    image: ${BABYVO_API_IMAGE}
+    container_name: babyvo-api
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://babyvo-postgres:5432/${DB_NAME:-babyvo}
+      REDIS_HOST: babyvo-redis
+      SECURITY_CHAIN_LOG: OFF
+      SECURITY_LOG: OFF
+    ports:
+      - "1905:1905"
+    depends_on:
+      - babyvo-postgres
+      - babyvo-redis
+
+volumes:
+  babyvo_pg_data:
+  babyvo_redis_data:

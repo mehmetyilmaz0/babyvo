@@ -1,0 +1,37 @@
+services:
+  babyvo-postgres:
+    image: postgres:16-alpine
+    container_name: babyvo-postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_NAME:-babyvo}
+      POSTGRES_USER: ${DB_USER:-babyvo}
+      POSTGRES_PASSWORD: ${DB_PASS:-babyvo123}
+    ports:
+      - "${DB_PORT:-5433}:5432"
+    volumes:
+      - babyvo_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-babyvo} -d ${DB_NAME:-babyvo}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  babyvo-redis:
+    image: redis:7-alpine
+    container_name: babyvo-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - babyvo_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  babyvo_pg_data:
+  babyvo_redis_data:

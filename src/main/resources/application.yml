@@ -1,0 +1,55 @@
+server:
+  port: ${SERVER_PORT:1905}
+
+spring:
+  application:
+    name: babyvo
+
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASS}
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      client-type: ${REDIS_CLIENT_TYPE:jedis}
+
+  jpa:
+    open-in-view: false
+
+  liquibase:
+    enabled: ${LIQUIBASE_ENABLED:false}
+
+  sql:
+    init:
+      encoding: UTF-8
+
+  mail:
+    host: ${SMTP_HOST:smtp.gmail.com}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USER:}
+    password: ${SMTP_PASS:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+babyvo:
+  otp:
+    secret: ${OTP_SECRET}
+  jwt:
+    secret: ${JWT_SECRET}
+    access-ttl-min: ${JWT_ACCESS_TTL_MIN:15}
+    refresh-ttl-days: ${JWT_REFRESH_TTL_DAYS:30}
+
+logging:
+  level:
+    org.springframework.security.web.FilterChainProxy: ${SECURITY_CHAIN_LOG:OFF}
+    org.springframework.security: ${SECURITY_LOG:OFF}

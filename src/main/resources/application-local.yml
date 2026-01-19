@@ -1,0 +1,11 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+  liquibase:
+    enabled: false
+
+logging:
+  level:
+    root: INFO
