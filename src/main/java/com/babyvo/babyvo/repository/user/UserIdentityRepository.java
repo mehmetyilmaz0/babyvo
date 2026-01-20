@@ -14,4 +14,9 @@ public interface UserIdentityRepository extends JpaRepository<UserIdentityEntity
     default Optional<UserIdentityEntity> findEmailIdentity(String normalizedEmail) {
         return findByProviderAndProviderSubjectAndIsDeletedFalse(IdentityProvider.EMAIL, normalizedEmail);
     }
+    Optional<UserIdentityEntity> findByProviderAndProviderSubject(IdentityProvider provider, String providerSubject);
+
+    boolean existsByProviderAndProviderSubject(IdentityProvider provider, String providerSubject);
+
+    boolean existsByProviderAndEmail(IdentityProvider provider, String email);
 }
