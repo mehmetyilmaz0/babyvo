@@ -87,24 +87,23 @@ public class AuthTokenService {
 
     @Transactional
     public void logout(String refreshToken) {
-        // Logout idempotent olmalı:
-        // token invalid/revoked olsa bile 200 döneceğiz (probe engeller)
         JwtService.ParsedRefreshToken parsed;
         try {
             parsed = jwtService.parseRefreshToken(refreshToken);
         } catch (Exception ignored) {
-            return;
+            return; // idempotent
         }
 
         UUID userId = parsed.userId();
         String jti = parsed.jti();
 
-        // sadece bu user’a ait aktif token ise revoke et
         if (refreshTokenStore.isActiveForUser(jti, userId)) {
-            refreshTokenStore.revoke(jti);
+            refreshTokenStore.revoke(userId, jti); // ✅ set'ten de düşer
         }
+    }
 
-        // (Opsiyonel) reuse denemelerini daha hızlı kesmek istersen:
-        // refreshTokenStore.markUsedOnce(jti, safeTtl(parsed.expiresAt()));
+    @Transactional
+    public void logoutAllDevices(UUID userId) {
+        refreshTokenStore.revokeAllForUser(userId);
     }
 }

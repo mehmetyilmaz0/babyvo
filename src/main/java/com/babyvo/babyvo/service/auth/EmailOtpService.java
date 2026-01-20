@@ -5,6 +5,7 @@ import com.babyvo.babyvo.common.exception.BusinessException;
 import com.babyvo.babyvo.repository.auth.EmailOtpRepository;
 import com.babyvo.babyvo.service.mail.EmailSender;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,20 +61,20 @@ public class EmailOtpService {
                 .orElseThrow(() -> new IllegalArgumentException("OTP_NOT_FOUND"));
 
         if (entity.isConsumed()) {
-            throw BusinessException.badRequest("OTP_ALREADY_USED");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "OTP_ALREADY_USED");
         }
         if (entity.isExpired(LocalDateTime.now())) {
-            throw BusinessException.badRequest("OTP_EXPIRED");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "OTP_EXPIRED");
         }
         if (entity.getAttemptCount() >= OTP_MAX_ATTEMPT) {
-            throw BusinessException.badRequest("OTP_TOO_MANY_ATTEMPTS");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "OTP_TOO_MANY_ATTEMPTS");
         }
 
         String expectedHash = otpHasher.hash(entity.getEmail(), otp);
         if (!expectedHash.equals(entity.getOtpHash())) {
             entity.setAttemptCount(entity.getAttemptCount() + 1);
             emailOtpRepository.save(entity);
-            throw BusinessException.badRequest("OTP_INVALID");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "OTP_INVALID");
         }
 
         entity.setConsumedAt(LocalDateTime.now());
@@ -87,7 +88,7 @@ public class EmailOtpService {
     @Transactional(readOnly = true)
     public String getEmailByOtpRef(UUID otpRef) {
         return emailOtpRepository.findByIdAndIsDeletedFalse(otpRef)
-                .orElseThrow(() -> BusinessException.badRequest("OTP_NOT_FOUND"))
+                .orElseThrow(() -> new BusinessException(HttpStatus.BAD_REQUEST, "OTP_NOT_FOUND"))
                 .getEmail();
     }
 }
