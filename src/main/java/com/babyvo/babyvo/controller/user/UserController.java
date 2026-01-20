@@ -1,10 +1,12 @@
 package com.babyvo.babyvo.controller.user;
 
 import com.babyvo.babyvo.common.apis.ApiResult;
+import com.babyvo.babyvo.common.exception.BusinessException;
 import com.babyvo.babyvo.entity.user.UserEntity;
 import com.babyvo.babyvo.repository.user.UserRepository;
 import com.babyvo.babyvo.response.user.MeResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +24,7 @@ public class UserController {
         UUID userId = (UUID) authentication.getPrincipal();
 
         UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("USER_NOT_FOUND"));
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND"));
 
         return ApiResult.ok(new MeResponse(user.getId(), user.getPrimaryEmail()));
     }

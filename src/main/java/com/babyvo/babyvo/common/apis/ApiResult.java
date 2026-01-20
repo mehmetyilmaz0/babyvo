@@ -52,4 +52,14 @@ public class ApiResult<T> {
                 .error(error)
                 .build();
     }
+
+    public static <T>ApiResult<T> ok() {
+        return ApiResult.<T>builder()
+                .success(false)
+                .status(200)
+                .message("SUCCESS")
+                .timestamp(Instant.now())
+                .build();
+
+    }
 }
