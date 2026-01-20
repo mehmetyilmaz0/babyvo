@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -28,6 +29,16 @@ public class JwtService {
         this.refreshTtlDays = refreshTtlDays;
     }
 
+    public record IssuedRefreshToken(String token, String jti, Instant expiresAt) {
+        public Duration ttlFromNow() {
+            Instant now = Instant.now();
+            if (expiresAt.isBefore(now)) return Duration.ZERO;
+            return Duration.between(now, expiresAt);
+        }
+    }
+
+    public record ParsedRefreshToken(UUID userId, String jti, Instant expiresAt) {}
+
     public String createAccessToken(UUID userId) {
         Instant now = Instant.now();
         return Jwts.builder()
@@ -39,15 +50,22 @@ public class JwtService {
                 .compact();
     }
 
-    public String createRefreshToken(UUID userId) {
+    // ✅ Yeni: refresh token issue (jti ile)
+    public IssuedRefreshToken issueRefreshToken(UUID userId) {
         Instant now = Instant.now();
-        return Jwts.builder()
+        Instant expiresAt = now.plus(refreshTtlDays, ChronoUnit.DAYS);
+        String jti = UUID.randomUUID().toString();
+
+        String token = Jwts.builder()
                 .setSubject(userId.toString())
+                .setId(jti) // jti
                 .setIssuedAt(Date.from(now))
-                .setExpiration(Date.from(now.plus(refreshTtlDays, ChronoUnit.DAYS)))
+                .setExpiration(Date.from(expiresAt))
                 .claim("typ", "refresh")
                 .signWith(Keys.hmacShaKeyFor(secretBytes), SignatureAlgorithm.HS256)
                 .compact();
+
+        return new IssuedRefreshToken(token, jti, expiresAt);
     }
 
     public UUID parseAccessTokenAndGetUserId(String token) {
@@ -58,9 +76,7 @@ public class JwtService {
                     .parseClaimsJws(token);
 
             String typ = jws.getBody().get("typ", String.class);
-            if (!"access".equals(typ)) {
-                throw new IllegalArgumentException("TOKEN_TYPE_INVALID");
-            }
+            if (!"access".equals(typ)) throw new IllegalArgumentException("TOKEN_TYPE_INVALID");
 
             return UUID.fromString(jws.getBody().getSubject());
         } catch (JwtException | IllegalArgumentException e) {
@@ -68,7 +84,8 @@ public class JwtService {
         }
     }
 
-    public UUID parseRefreshTokenAndGetUserId(String token) {
+    // ✅ Yeni: refresh token parse (userId + jti + exp)
+    public ParsedRefreshToken parseRefreshToken(String token) {
         try {
             Jws<Claims> jws = Jwts.parserBuilder()
                     .setSigningKey(Keys.hmacShaKeyFor(secretBytes))
@@ -76,11 +93,15 @@ public class JwtService {
                     .parseClaimsJws(token);
 
             String typ = jws.getBody().get("typ", String.class);
-            if (!"refresh".equals(typ)) {
-                throw new IllegalArgumentException("TOKEN_TYPE_INVALID");
-            }
+            if (!"refresh".equals(typ)) throw new IllegalArgumentException("TOKEN_TYPE_INVALID");
 
-            return UUID.fromString(jws.getBody().getSubject());
+            UUID userId = UUID.fromString(jws.getBody().getSubject());
+            String jti = jws.getBody().getId();
+            Date exp = jws.getBody().getExpiration();
+
+            if (jti == null || jti.isBlank()) throw new IllegalArgumentException("TOKEN_INVALID");
+
+            return new ParsedRefreshToken(userId, jti, exp.toInstant());
         } catch (JwtException | IllegalArgumentException e) {
             throw new IllegalArgumentException("TOKEN_INVALID", e);
         }
