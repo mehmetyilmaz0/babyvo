@@ -26,6 +26,7 @@ public class GoogleAuthService {
     private final UserRepository userRepository;
     private final UserIdentityRepository userIdentityRepository;
     private final JwtService jwtService;
+    private final RefreshTokenStore refreshTokenStore;
 
     @Transactional
     public AuthTokensResponse loginOrRegister(String idToken) {
@@ -108,10 +109,19 @@ public class GoogleAuthService {
     }
 
     private AuthTokensResponse buildTokens(UserEntity user) {
-        String accessToken = jwtService.createAccessToken(user.getId());
-        String refreshToken = jwtService.createRefreshToken(user.getId());
+        String access = jwtService.createAccessToken(user.getId());
 
-        var userInfo = new AuthTokensResponse.UserInfo(user.getId(), user.getPrimaryEmail());
-        return new AuthTokensResponse(accessToken, refreshToken, userInfo);
+        JwtService.IssuedRefreshToken issuedRefresh = jwtService.issueRefreshToken(user.getId());
+        refreshTokenStore.storeActive(
+                issuedRefresh.jti(),
+                user.getId(),
+                issuedRefresh.ttlFromNow()
+        );
+
+        return new AuthTokensResponse(
+                access,
+                issuedRefresh.token(),
+                new AuthTokensResponse.UserInfo(user.getId(), user.getPrimaryEmail())
+        );
     }
 }

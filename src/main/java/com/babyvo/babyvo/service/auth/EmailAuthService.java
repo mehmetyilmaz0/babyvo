@@ -43,7 +43,7 @@ public class EmailAuthService {
         return jwtService.createAccessToken(user.getId());
     }
 
-    public String refreshToken(UserEntity user) {
-        return jwtService.createRefreshToken(user.getId());
+    public JwtService.IssuedRefreshToken issueRefreshToken(UserEntity user) {
+        return jwtService.issueRefreshToken(user.getId());
     }
 }
