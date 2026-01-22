@@ -17,10 +17,13 @@ import java.time.LocalDateTime;
 @Entity
 @Table(
         name = "baby_invites",
+        uniqueConstraints = {
+                @UniqueConstraint(name="uk_invite_token_hash", columnNames={"token_hash"})
+        },
         indexes = {
                 @Index(name = "idx_invites_baby_status", columnList = "baby_id,status"),
                 @Index(name = "idx_invites_email_status", columnList = "invited_email,status"),
-                @Index(name = "idx_invites_expires_at", columnList = "expiresAt")
+                @Index(name = "idx_invites_expires_at", columnList = "expires_at")
         }
 )
 @Getter

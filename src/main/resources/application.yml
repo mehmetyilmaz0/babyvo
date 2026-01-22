@@ -52,7 +52,9 @@ babyvo:
     google:
       client-id: ${GOOGLE_CLIENT_ID}
     apple:
-      client-id: ${APPLE_CLIENT_ID}
+      client-id: ${APPLE_CLIENT_ID:com.yourcompany.babyvo}
+  invite:
+    secret: ${INVITE_SECRET}
 
 logging:
   level:
