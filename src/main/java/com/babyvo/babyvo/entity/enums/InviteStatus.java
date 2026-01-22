@@ -4,5 +4,6 @@ public enum InviteStatus {
     PENDING,
     ACCEPTED,
     CANCELLED,
-    EXPIRED
+    EXPIRED,
+    REJECTED
 }

@@ -30,7 +30,7 @@ public class AppleTokenVerifier {
 
     private final RestClient restClient = RestClient.create();
 
-    public AppleTokenVerifier(@Value("${babyvo.apple.client-id}") String clientId) {
+    public AppleTokenVerifier(@Value("${babyvo.auth.apple.client-id}") String clientId) {
         this.clientId = clientId;
     }
 

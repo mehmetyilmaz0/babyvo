@@ -29,4 +29,28 @@ public class SmtpEmailSender implements EmailSender {
 
         mailSender.send(msg);
     }
+
+    @Override
+    public void sendInvite(String toEmail,
+                           String babyName,
+                           String inviteToken,
+                           long expiresHours) {
+
+        SimpleMailMessage msg = new SimpleMailMessage();
+        msg.setFrom(from);
+        msg.setTo(toEmail);
+        msg.setSubject("BabyVo - Baby Invite");
+        msg.setText("""
+                You have been invited to manage the baby "%s" on BabyVo.
+
+                Invite code:
+                %s
+
+                This invite expires in %d hours.
+
+                Open the app and accept the invite to continue.
+                """.formatted(babyName, inviteToken, expiresHours));
+
+        mailSender.send(msg);
+    }
 }
