@@ -324,9 +324,145 @@ Ortam değişkenleri ile yönetilir:
 
 ---
 
-## Yol Haritası
+## 👶 Baby & Ebeveyn Paylaşımı (Invite)
 
-- Apple Sign-In
-- Baby / Parent yetkilendirme
-- Invite & permission sistemi
-- Audit log ve security event’leri
+BabyVo, bir bebek profilinin birden fazla ebeveyn tarafından yönetilebilmesini destekler.
+Bu bölüm, bebek oluşturma, ebeveyn davet etme ve davet kabul / reddetme akışlarını açıklar.
+
+---
+
+### 🧱 Temel Kavramlar
+
+#### Baby
+Bir bebek profilini temsil eder.
+
+#### BabyParent
+Bir kullanıcının bir bebek üzerindeki rolünü ve yetkilerini temsil eden ilişki tablosudur.
+
+**Role (`BabyParentRole`)**
+- OWNER → Bebeği oluşturan kişi (tek)
+- CO_PARENT → Anne / Baba
+- CAREGIVER → Bakıcı
+- VIEWER → Sadece görüntüleme
+
+**Permission (`BabyPermission`)**
+- READ_ONLY
+- READ_WRITE
+
+> Role = kim, Permission = ne yapabilir
+
+---
+
+### 🔐 Güvenlik Notları
+
+- Tüm endpoint’ler JWT access token ister
+- Invite token’ları client’a plain döner, DB’de hash’lenmiş saklanır
+- Invite token’ları süreli ve tek kullanımlıktır
+- Email davetlerinde email eşleşmesi zorunludur
+
+---
+
+## 🚼 Baby API’leri
+
+### Bebek Oluşturma
+
+POST /api/v1/babies
+
+```bash
+curl -X POST http://localhost:1905/api/v1/babies \
+  -H "Authorization: Bearer ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Deniz",
+    "birthDate": "2025-04-03",
+    "sex": "MALE"
+  }'
+```
+
+---
+
+### Kullanıcının Bebeklerini Listeleme
+
+GET /api/v1/babies
+
+```bash
+curl -X GET http://localhost:1905/api/v1/babies \
+  -H "Authorization: Bearer ACCESS_TOKEN"
+```
+
+---
+
+### Bebek Detayı
+
+GET /api/v1/babies/{babyId}
+
+```bash
+curl -X GET http://localhost:1905/api/v1/babies/{babyId} \
+  -H "Authorization: Bearer ACCESS_TOKEN"
+```
+
+---
+
+### Bebek Güncelleme
+
+PATCH /api/v1/babies/{babyId}
+
+```bash
+curl -X PATCH http://localhost:1905/api/v1/babies/{babyId} \
+  -H "Authorization: Bearer ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "birthDate": "2025-04-03"
+  }'
+```
+
+---
+
+## 🤝 Invite API’leri
+
+### Davet Oluşturma
+
+POST /api/v1/babies/{babyId}/invites
+
+```bash
+curl -X POST http://localhost:1905/api/v1/babies/{babyId}/invites \
+  -H "Authorization: Bearer ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "anne@example.com",
+    "permission": "READ_WRITE"
+  }'
+```
+
+---
+
+### Daveti Kabul Etme
+
+POST /api/v1/invites/accept
+
+```bash
+curl -X POST http://localhost:1905/api/v1/invites/accept \
+  -H "Authorization: Bearer INVITED_USER_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "inviteToken": "TOKEN_VALUE"
+  }'
+```
+
+---
+
+### Daveti Reddetme
+
+POST /api/v1/invites/reject
+
+```bash
+curl -X POST http://localhost:1905/api/v1/invites/reject \
+  -H "Authorization: Bearer ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "inviteToken": "TOKEN_VALUE"
+  }'
+```
+
+---
+
