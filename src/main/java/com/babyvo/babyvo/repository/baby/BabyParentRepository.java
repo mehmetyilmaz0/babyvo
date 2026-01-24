@@ -2,6 +2,7 @@ package com.babyvo.babyvo.repository.baby;
 
 import com.babyvo.babyvo.entity.baby.BabyParentEntity;
 import com.babyvo.babyvo.entity.enums.BabyParentStatus;
+import com.babyvo.babyvo.entity.enums.BabyPermission;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -12,4 +13,11 @@ public interface BabyParentRepository extends JpaRepository<BabyParentEntity, Lo
     Optional<BabyParentEntity> findByBabyEntity_IdAndUserEntity_Id(UUID babyId, UUID userId);
     List<BabyParentEntity> findAllByUserEntity_IdAndStatus(UUID userId, BabyParentStatus status);
     boolean existsByBabyEntity_IdAndUserEntity_IdAndStatus(UUID babyId, UUID userId, BabyParentStatus status);
+
+    boolean existsByBabyEntity_IdAndUserEntity_IdAndStatusAndPermission(
+            UUID babyId,
+            UUID userId,
+            BabyParentStatus status,
+            BabyPermission permission
+    );
 }

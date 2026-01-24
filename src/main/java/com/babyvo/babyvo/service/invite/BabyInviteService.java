@@ -15,8 +15,8 @@ import com.babyvo.babyvo.repository.user.UserRepository;
 import com.babyvo.babyvo.request.invite.CreateInviteRequest;
 import com.babyvo.babyvo.response.invite.AcceptInviteResponse;
 import com.babyvo.babyvo.response.invite.CreateInviteResponse;
+import com.babyvo.babyvo.service.baby.BabyAccessService;
 import com.babyvo.babyvo.service.mail.EmailSender;
-import com.babyvo.babyvo.service.security.BabyAccessService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -46,7 +46,7 @@ public class BabyInviteService {
 
     @Transactional
     public CreateInviteResponse create(UUID babyId, UUID currentUserId, CreateInviteRequest req) {
-        babyAccessService.requireActiveParent(babyId, currentUserId);
+        babyAccessService.requireWriteParent(babyId, currentUserId);
 
         BabyEntity baby = babyRepository.findById(babyId)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "BABY_NOT_FOUND"));
