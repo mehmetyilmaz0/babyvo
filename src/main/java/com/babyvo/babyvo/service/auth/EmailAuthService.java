@@ -18,9 +18,9 @@ public class EmailAuthService {
     private final UserIdentityRepository identityRepository;
     private final JwtService jwtService;
 
-    @Transactional
+    @Transactional(readOnly = true)
     public UserEntity findOrCreateEmailUser(String normalizedEmail) {
-        return identityRepository.findEmailIdentity(normalizedEmail)
+        return identityRepository.findEmailIdentityWithUser(IdentityProvider.EMAIL, normalizedEmail)
                 .map(UserIdentityEntity::getUserEntity)
                 .orElseGet(() -> {
                     UserEntity user = new UserEntity();
